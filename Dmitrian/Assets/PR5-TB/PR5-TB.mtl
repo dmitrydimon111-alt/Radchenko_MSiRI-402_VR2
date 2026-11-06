@@ -1,0 +1,122 @@
+# Exported from Fuse 1.3.0
+
+newmtl Hair
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Hair_diffuse.png
+map_Ks PR5-TB_Hair_specular.png
+bump PR5-TB_Hair_normal.png
+map_Ns PR5-TB_Hair_gloss.png
+
+newmtl Beard
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Beard_diffuse.png
+map_Ks PR5-TB_Beard_specular.png
+bump PR5-TB_Beard_normal.png
+map_Ns PR5-TB_Beard_gloss.png
+
+newmtl Eyewear
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Eyewear_diffuse.png
+map_Ks PR5-TB_Eyewear_specular.png
+bump PR5-TB_Eyewear_normal.png
+map_Ns PR5-TB_Eyewear_gloss.png
+
+newmtl Body
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Body_diffuse.png
+map_Ks PR5-TB_Body_specular.png
+bump PR5-TB_Body_normal.png
+map_Ns PR5-TB_Body_gloss.png
+
+newmtl Shoes
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Shoes_diffuse.png
+map_Ks PR5-TB_Shoes_specular.png
+bump PR5-TB_Shoes_normal.png
+map_Ns PR5-TB_Shoes_gloss.png
+
+newmtl Top
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Top_diffuse.png
+map_Ks PR5-TB_Top_specular.png
+bump PR5-TB_Top_normal.png
+map_Ns PR5-TB_Top_gloss.png
+
+newmtl Hat
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Hat_diffuse.png
+map_Ks PR5-TB_Hat_specular.png
+bump PR5-TB_Hat_normal.png
+map_Ns PR5-TB_Hat_gloss.png
+
+newmtl Moustache
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Moustache_diffuse.png
+map_Ks PR5-TB_Moustache_specular.png
+bump PR5-TB_Moustache_normal.png
+map_Ns PR5-TB_Moustache_gloss.png
+
+newmtl Glove
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Glove_diffuse.png
+map_Ks PR5-TB_Glove_specular.png
+bump PR5-TB_Glove_normal.png
+map_Ns PR5-TB_Glove_gloss.png
+
+newmtl Bottom
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 1.00 1.00 1.00
+map_Kd PR5-TB_Bottom_diffuse.png
+map_Ks PR5-TB_Bottom_specular.png
+bump PR5-TB_Bottom_normal.png
+map_Ns PR5-TB_Bottom_gloss.png
+
