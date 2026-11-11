@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using System.Globalization;
@@ -19,8 +20,13 @@ public class CncJson8 : MonoBehaviour
 
     [Header("Направления движения")]
     [SerializeField] private Vector3 directionX = Vector3.right;
-    [SerializeField] private Vector3 directionY = Vector3.forward;
-    [SerializeField] private Vector3 directionZ = Vector3.up;
+    [SerializeField] private Vector3 directionY = Vector3.up;
+
+    [Tooltip("Направление движения Z в мировой системе координат")]
+    [SerializeField] private Vector3 directionZ = Vector3.forward;
+
+    [Header("Масштаб перемещения")]
+    [SerializeField] private float yMovementMultiplier = 0.01f;
 
     private Vector3 startX;
     private Vector3 startY;
@@ -40,7 +46,14 @@ public class CncJson8 : MonoBehaviour
             return;
         }
 
-        // Запоминаем начальные положения узлов
+        if (nodeZ.parent == null)
+        {
+            Debug.LogError("CNC: У узла Z отсутствует родительский объект.");
+            enabled = false;
+            return;
+        }
+
+        // Сохраняем начальные положения
         startX = nodeX.localPosition;
         startY = nodeY.localPosition;
         startZ = nodeZ.localPosition;
@@ -77,11 +90,9 @@ public class CncJson8 : MonoBehaviour
             readingCoroutine = null;
         }
 
-        // Прерываем запрос, если он выполняется
         if (activeRequest != null)
         {
             activeRequest.Abort();
-            activeRequest.Dispose();
             activeRequest = null;
         }
 
@@ -103,7 +114,6 @@ public class CncJson8 : MonoBehaviour
 
                 yield return request.SendWebRequest();
 
-                // Проверяем, не остановили ли считывание
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     try
@@ -115,7 +125,6 @@ public class CncJson8 : MonoBehaviour
                         float y = GetCoordinate(json, "Y");
                         float z = GetCoordinate(json, "Z");
 
-                        // Обновляем текстовую панель
                         if (panel != null)
                         {
                             panel.ShowCoordinates(x, y, z);
@@ -123,18 +132,32 @@ public class CncJson8 : MonoBehaviour
                                 "Связь с контроллером установлена");
                         }
 
-                        // Перемещаем узлы станка
+                        // ОСЬ X
                         nodeX.localPosition =
-                            startX + directionX.normalized * x * MmToMeters;
+                            startX + directionX.normalized *
+                            x * MmToMeters;
 
+                        // ОСЬ Y
                         nodeY.localPosition =
-                            startY + directionY.normalized * y * MmToMeters;
+                            startY + directionY.normalized *
+                            y * MmToMeters * yMovementMultiplier;
+
+                        // ОСЬ Z
+                        // Преобразуем мировое направление Z
+                        // в локальную систему родителя TabFix.
+                        Vector3 localDirectionZ =
+                            nodeZ.parent.InverseTransformDirection(
+                                directionZ.normalized);
 
                         nodeZ.localPosition =
-                            startZ + directionZ.normalized * z * MmToMeters;
+                            startZ + localDirectionZ.normalized *
+                            z * MmToMeters;
 
                         Debug.Log(
-                            $"CNC: X={x}; Y={y}; Z={z} мм");
+                            $"CNC: X={x:F3}; Y={y:F3}; Z={z:F3} мм");
+
+                        Debug.Log(
+                            $"CNC Z local direction: {localDirectionZ}");
                     }
                     catch (Exception e)
                     {
@@ -148,7 +171,8 @@ public class CncJson8 : MonoBehaviour
                         "CNC: Ошибка запроса: " + request.error);
                 }
 
-                activeRequest = null;
+                if (activeRequest == request)
+                    activeRequest = null;
             }
 
             yield return new WaitForSecondsRealtime(
@@ -156,6 +180,7 @@ public class CncJson8 : MonoBehaviour
         }
     }
 
+    // ПОЛУЧЕНИЕ КООРДИНАТЫ ИЗ JSON
     private float GetCoordinate(JObject json, string axis)
     {
         string target = "Перемещение по оси " + axis;
@@ -176,30 +201,30 @@ public class CncJson8 : MonoBehaviour
                 .Replace('Х', 'X')
                 .Replace('х', 'x');
 
-            if (string.Equals(
+            if (!string.Equals(
                 name,
                 normalizedTarget,
                 StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string valueText = row[1].ToString()
+                .Replace("мм", "")
+                .Replace("MM", "")
+                .Replace(',', '.')
+                .Trim();
+
+            if (float.TryParse(
+                valueText,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out float value))
             {
-                string valueText = row[1].ToString()
-                    .Replace("мм", "")
-                    .Replace("MM", "")
-                    .Replace(',', '.')
-                    .Trim();
-
-                if (float.TryParse(
-                    valueText,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out float value))
-                {
-                    return value;
-                }
-
-                throw new FormatException(
-                    "Не удалось преобразовать координату " +
-                    axis + ": " + valueText);
+                return value;
             }
+
+            throw new FormatException(
+                "Не удалось преобразовать координату " +
+                axis + ": " + valueText);
         }
 
         throw new FormatException(
