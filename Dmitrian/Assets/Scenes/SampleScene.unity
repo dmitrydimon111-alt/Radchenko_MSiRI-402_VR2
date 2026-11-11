@@ -780,7 +780,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CncJsonController
   url: https://cnc.kovalev.team/get/3
-  channel: 1
   interval: 0.5
   nodeX: {fileID: 2119917426}
   nodeY: {fileID: 805110881}
@@ -788,6 +787,8 @@ MonoBehaviour:
   directionX: {x: 1, y: 0, z: 0}
   directionY: {x: 0, y: 0, z: 1}
   directionZ: {x: 0, y: 1, z: 0}
+  movementScale: 0.001
+  yMovementMultiplier: 0.01
 --- !u!1 &661373082
 GameObject:
   m_ObjectHideFlags: 0
@@ -1742,14 +1743,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CncJsonController
   url: https://cnc.kovalev.team/get/3
-  channel: 1
   interval: 0.5
   nodeX: {fileID: 8182953941088370772}
-  nodeY: {fileID: 572334905529951976}
-  nodeZ: {fileID: 6764119586187720118}
+  nodeY: {fileID: 6764119586187720118}
+  nodeZ: {fileID: 572334905529951976}
   directionX: {x: 1, y: 0, z: 0}
   directionY: {x: 0, y: 0, z: 1}
   directionZ: {x: 0, y: 1, z: 0}
+  movementScale: 0.001
+  yMovementMultiplier: 0.01
 --- !u!1 &1935374780
 GameObject:
   m_ObjectHideFlags: 0
@@ -2313,7 +2315,7 @@ Transform:
   m_GameObject: {fileID: 689948957388571375}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0.9559749, z: 0}
+  m_LocalPosition: {x: 0, y: 0.9559749, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 177.7829}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2447,7 +2449,7 @@ GameObject:
   - component: {fileID: 8984414552675100662}
   - component: {fileID: 6823410275222992640}
   m_Layer: 0
-  m_Name: Table support (Y)
+  m_Name: Table support (Z)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4868,7 +4870,7 @@ GameObject:
   - component: {fileID: 4317308337146321989}
   - component: {fileID: 5557197072545515080}
   m_Layer: 0
-  m_Name: Spindle front (Z)
+  m_Name: Spindle front (Y)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5919,12 +5921,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4697622383386918799}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0.3760001, y: 3.0809164, z: 0.10874748}
-  m_LocalScale: {x: 100, y: 100, z: 118.80224}
+  m_LocalRotation: {x: -0.00000005960465, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.00004928887, y: -0.00015999778, z: 0.001541759}
+  m_LocalScale: {x: 1, y: 1, z: 1.2079247}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8995865119018985802}
+  m_Father: {fileID: 8182953941088370772}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &6767921810020981349
 MeshRenderer:
@@ -6747,10 +6749,11 @@ Transform:
   m_GameObject: {fileID: 3548378881318687333}
   serializedVersion: 2
   m_LocalRotation: {x: -0.70710677, y: 0, z: 0, w: 0.70710677}
-  m_LocalPosition: {x: -0.38092893, y: 2.9273643, z: 0.09274769}
+  m_LocalPosition: {x: -0.459, y: 2.9273643, z: 0.09274769}
   m_LocalScale: {x: 100, y: 100, z: 98.352356}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6764119586187720118}
   m_Father: {fileID: 8995865119018985802}
   m_LocalEulerAnglesHint: {x: -90, y: -90, z: 90}
 --- !u!4 &8236526177430701958
@@ -7015,7 +7018,6 @@ Transform:
   - {fileID: 8182953941088370772}
   - {fileID: 572334905529951976}
   - {fileID: 5874595355628686553}
-  - {fileID: 6764119586187720118}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &9026718376635758258

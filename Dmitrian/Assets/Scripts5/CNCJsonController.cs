@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using System.Globalization;
@@ -10,7 +9,6 @@ public class CncJsonController : MonoBehaviour
 {
     [Header("Подключение к серверу")]
     [SerializeField] private string url = "https://cnc.kovalev.team/get/3";
-    [SerializeField] private int channel = 1;
     [SerializeField] private float interval = 0.5f;
 
     [Header("Узлы станка")]
@@ -20,34 +18,73 @@ public class CncJsonController : MonoBehaviour
 
     [Header("Направления движения")]
     [SerializeField] private Vector3 directionX = Vector3.right;
-    [SerializeField] private Vector3 directionY = Vector3.forward;
-    [SerializeField] private Vector3 directionZ = Vector3.up;
+    [SerializeField] private Vector3 directionY = Vector3.up;
+    [SerializeField] private Vector3 directionZ = Vector3.forward;
+
+    [Header("Масштаб перемещения")]
+    [SerializeField] private float movementScale = 0.001f;
+    [SerializeField] private float yMovementMultiplier = 0.01f;
 
     private Vector3 startX;
     private Vector3 startY;
     private Vector3 startZ;
 
-    private const float MmToMeters = 0.001f;
+    private Coroutine readingCoroutine;
 
-    private IEnumerator Start()
+    private void Start()
     {
         if (nodeX == null || nodeY == null || nodeZ == null)
         {
-            Debug.LogError("CNC: Назначьте узлы X, Y и Z в Inspector.");
-            yield break;
+            Debug.LogError("CNC: Не назначены узлы станка.");
+            enabled = false;
+            return;
+        }
+
+        if (nodeY.parent != nodeX)
+        {
+            Debug.LogError(
+                "CNC: Spindle front (Y) должен быть дочерним объектом Spindle front (X).");
+            enabled = false;
+            return;
         }
 
         startX = nodeX.localPosition;
         startY = nodeY.localPosition;
         startZ = nodeZ.localPosition;
 
-        Debug.Log("CNC: Контроллер запущен.");
+        Debug.Log("CNC: Контроллер готов.");
 
+        StartReading();
+    }
+
+    public void StartReading()
+    {
+        if (!enabled || readingCoroutine != null)
+            return;
+
+        readingCoroutine = StartCoroutine(ReadCoordinates());
+        Debug.Log("CNC: Считывание запущено.");
+    }
+
+    public void StopReading()
+    {
+        if (readingCoroutine == null)
+            return;
+
+        StopCoroutine(readingCoroutine);
+        readingCoroutine = null;
+
+        Debug.Log("CNC: Считывание остановлено.");
+    }
+
+    private IEnumerator ReadCoordinates()
+    {
         while (true)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(url))
             {
                 request.timeout = 10;
+
                 yield return request.SendWebRequest();
 
                 if (request.result == UnityWebRequest.Result.Success)
@@ -61,28 +98,31 @@ public class CncJsonController : MonoBehaviour
                         float y = GetCoordinate(json, "Y");
                         float z = GetCoordinate(json, "Z");
 
+                        // Ось X: перемещение шпинделя
                         nodeX.localPosition =
-                            startX + directionX.normalized * x * MmToMeters;
+                            startX + directionX.normalized * x * movementScale;
 
+                        // Ось Y: перемещение относительно шпинделя X
                         nodeY.localPosition =
-                            startY + directionY.normalized * y * MmToMeters;
+                            startY + directionY.normalized * y * movementScale * yMovementMultiplier;
 
+                        // Ось Z: перемещение опоры стола
                         nodeZ.localPosition =
-                            startZ + directionZ.normalized * z * MmToMeters;
+                            startZ + directionZ.normalized * z * movementScale;
 
                         Debug.Log(
-                            $"CNC: X={x}; Y={y}; Z={z} мм");
+                            $"CNC: X={x:F3}; Y={y:F3}; Z={z:F3} мм");
                     }
                     catch (Exception e)
                     {
                         Debug.LogError(
-                            "CNC: Ошибка чтения JSON: " + e.Message);
+                            "CNC: Ошибка обработки данных: " + e.Message);
                     }
                 }
                 else
                 {
                     Debug.LogError(
-                        "CNC: Ошибка запроса: " + request.error);
+                        "CNC: Ошибка подключения: " + request.error);
                 }
             }
 
@@ -107,41 +147,37 @@ public class CncJsonController : MonoBehaviour
                 .Replace('Х', 'X')
                 .Replace('х', 'x');
 
-            string normalizedTarget = target
-                .Replace('Х', 'X')
-                .Replace('х', 'x');
-
-            if (string.Equals(
+            if (!string.Equals(
                 name,
-                normalizedTarget,
+                target,
                 StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string valueText = row[1].ToString()
+                .Replace("мм", "")
+                .Replace("MM", "")
+                .Replace(',', '.')
+                .Trim();
+
+            if (float.TryParse(
+                valueText,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out float value))
             {
-                string valueText = row[1].ToString()
-                    .Replace("мм", "")
-                    .Replace("MM", "")
-                    .Replace(',', '.')
-                    .Trim();
-
-                if (float.TryParse(
-                    valueText,
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out float value))
-                {
-                    Debug.Log(
-                        "CNC: Найдена координата " +
-                        axis + " = " + value + " мм");
-
-                    return value;
-                }
-
-                throw new FormatException(
-                    "Не удалось преобразовать координату " +
-                    axis + ": " + valueText);
+                return value;
             }
+
+            throw new FormatException(
+                "Некорректное значение оси " + axis + ": " + valueText);
         }
 
         throw new FormatException(
-            "Не найдена координата " + axis);
+            "Не найдена координата оси " + axis);
+    }
+
+    private void OnDisable()
+    {
+        StopReading();
     }
 }
