@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using System.Globalization;
@@ -35,6 +34,8 @@ public class CncJson8 : MonoBehaviour
     private Coroutine readingCoroutine;
     private UnityWebRequest activeRequest;
 
+    private bool isInitialized = false;
+
     private const float MmToMeters = 0.001f;
 
     private void Start()
@@ -58,15 +59,23 @@ public class CncJson8 : MonoBehaviour
         startY = nodeY.localPosition;
         startZ = nodeZ.localPosition;
 
+        isInitialized = true;
+
         if (panel != null)
             panel.ShowMessage("Ожидание запуска считывания");
 
         Debug.Log("CNC: Контроллер готов к работе.");
     }
 
-    // КНОПКА СТАРТ
+    // ЗАПУСК СЧИТЫВАНИЯ
     public void StartReading()
     {
+        if (!isInitialized)
+        {
+            Debug.LogError("CNC: Контроллер ещё не инициализирован.");
+            return;
+        }
+
         if (readingCoroutine != null)
         {
             Debug.Log("CNC: Считывание уже запущено.");
@@ -81,9 +90,11 @@ public class CncJson8 : MonoBehaviour
         Debug.Log("CNC: Считывание запущено.");
     }
 
-    // КНОПКА СТОП
+    // ОСТАНОВКА СЧИТЫВАНИЯ
     public void StopReading()
     {
+        bool wasRunning = readingCoroutine != null || activeRequest != null;
+
         if (readingCoroutine != null)
         {
             StopCoroutine(readingCoroutine);
@@ -96,10 +107,13 @@ public class CncJson8 : MonoBehaviour
             activeRequest = null;
         }
 
-        if (panel != null)
-            panel.ShowMessage("Считывание данных остановлено");
+        if (wasRunning)
+        {
+            if (panel != null)
+                panel.ShowMessage("Считывание данных остановлено");
 
-        Debug.Log("CNC: Считывание остановлено.");
+            Debug.Log("CNC: Считывание остановлено.");
+        }
     }
 
     // ЦИКЛ СЧИТЫВАНИЯ
@@ -119,7 +133,8 @@ public class CncJson8 : MonoBehaviour
                     try
                     {
                         JObject json = JObject.Parse(
-                            request.downloadHandler.text);
+                            request.downloadHandler.text
+                        );
 
                         float x = GetCoordinate(json, "X");
                         float y = GetCoordinate(json, "Y");
@@ -129,7 +144,8 @@ public class CncJson8 : MonoBehaviour
                         {
                             panel.ShowCoordinates(x, y, z);
                             panel.ShowMessage(
-                                "Связь с контроллером установлена");
+                                "Связь с контроллером установлена"
+                            );
                         }
 
                         // ОСЬ X
@@ -143,32 +159,35 @@ public class CncJson8 : MonoBehaviour
                             y * MmToMeters;
 
                         // ОСЬ Z
-                        // Преобразуем мировое направление Z
-                        // в локальную систему родителя TabFix.
                         Vector3 localDirectionZ =
                             nodeZ.parent.InverseTransformDirection(
-                                directionZ.normalized);
+                                directionZ.normalized
+                            );
 
                         nodeZ.localPosition =
                             startZ + localDirectionZ.normalized *
                             z * MmToMeters * yMovementMultiplier;
 
                         Debug.Log(
-                            $"CNC: X={x:F3}; Y={y:F3}; Z={z:F3} мм");
+                            $"CNC: X={x:F3}; Y={y:F3}; Z={z:F3} мм"
+                        );
 
                         Debug.Log(
-                            $"CNC Z local direction: {localDirectionZ}");
+                            $"CNC Z local direction: {localDirectionZ}"
+                        );
                     }
                     catch (Exception e)
                     {
                         Debug.LogError(
-                            "CNC: Ошибка чтения JSON: " + e.Message);
+                            "CNC: Ошибка чтения JSON: " + e.Message
+                        );
                     }
                 }
                 else if (request.result != UnityWebRequest.Result.ConnectionError)
                 {
                     Debug.LogError(
-                        "CNC: Ошибка запроса: " + request.error);
+                        "CNC: Ошибка запроса: " + request.error
+                    );
                 }
 
                 if (activeRequest == request)
@@ -176,7 +195,8 @@ public class CncJson8 : MonoBehaviour
             }
 
             yield return new WaitForSecondsRealtime(
-                Mathf.Max(0.1f, interval));
+                Mathf.Max(0.1f, interval)
+            );
         }
     }
 
@@ -224,11 +244,13 @@ public class CncJson8 : MonoBehaviour
 
             throw new FormatException(
                 "Не удалось преобразовать координату " +
-                axis + ": " + valueText);
+                axis + ": " + valueText
+            );
         }
 
         throw new FormatException(
-            "Не найдена координата " + axis);
+            "Не найдена координата " + axis
+        );
     }
 
     private void OnDisable()

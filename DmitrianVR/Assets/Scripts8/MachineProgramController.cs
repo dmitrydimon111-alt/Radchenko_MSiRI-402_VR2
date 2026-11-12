@@ -7,6 +7,9 @@ public class MachineProgramController : MonoBehaviour
     [Header("Навигация и выбор программы")]
     [SerializeField] private MachineScreenNavigation screenNavigation;
 
+    [Header("Считывание координат CNC")]
+    [SerializeField] private CncJson8 cncJson;
+
     [Header("Сигнальная лампа")]
     [SerializeField] private MachineSignalController signalController;
 
@@ -25,7 +28,7 @@ public class MachineProgramController : MonoBehaviour
     [SerializeField] private TMP_Text programStatusText;
 
     [Header("Настройки обработки")]
-    [SerializeField] private float processingDuration = 12.5f;
+    [SerializeField] private float processingDuration = 60f;
     [SerializeField] private float completionMessageDuration = 2f;
 
     private bool isProgramRunning = false;
@@ -47,7 +50,7 @@ public class MachineProgramController : MonoBehaviour
         HasCompletedProgram = false;
     }
 
-    // Запуск программы обработки
+    // ЗАПУСК ПРОГРАММЫ ОБРАБОТКИ
     public void StartProgram()
     {
         if (isProgramRunning)
@@ -101,7 +104,7 @@ public class MachineProgramController : MonoBehaviour
         // Сбрасываем признак завершения предыдущей обработки
         HasCompletedProgram = false;
 
-        // Запуск программы
+        // Запускаем программу
         isProgramRunning = true;
 
         // Блокируем двери
@@ -115,7 +118,7 @@ public class MachineProgramController : MonoBehaviour
         if (signalController != null)
             signalController.SetRunning();
 
-        // Показываем панель и выводим сообщение о начале обработки
+        // Показываем панель сообщения
         if (messagePanel != null)
             messagePanel.SetActive(true);
 
@@ -125,10 +128,26 @@ public class MachineProgramController : MonoBehaviour
                 "Выполнение программы matritsa: в процессе";
         }
 
+        // Одновременно запускаем считывание координат
+        if (cncJson != null)
+        {
+            cncJson.StartReading();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CNC: Не назначен CncJson8. " +
+                "Обработка запущена без считывания координат."
+            );
+        }
+
+        // Запускаем цикл обработки
         StartCoroutine(ProcessProgram());
+
+        Debug.Log("CNC: Программа MATRITSA запущена.");
     }
 
-    // Основной цикл обработки
+    // ОСНОВНОЙ ЦИКЛ ОБРАБОТКИ
     private IEnumerator ProcessProgram()
     {
         // Запоминаем начальные позиции моделей
@@ -141,7 +160,7 @@ public class MachineProgramController : MonoBehaviour
 
         float elapsedTime = 0f;
 
-        // Плавное перемещение моделей навстречу друг другу
+        // Плавное перемещение моделей
         while (elapsedTime < processingDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -184,6 +203,10 @@ public class MachineProgramController : MonoBehaviour
         workpiece.rotation = finishedPartStartRotation;
         finishedPart.rotation = workpieceStartRotation;
 
+        // Останавливаем считывание координат
+        if (cncJson != null)
+            cncJson.StopReading();
+
         // Выводим сообщение о завершении обработки
         if (programStatusText != null)
         {
@@ -193,13 +216,13 @@ public class MachineProgramController : MonoBehaviour
 
         Debug.Log("Программа MATRITSA завершена!");
 
-        // Сообщаем системе обучения, что обработка завершена
+        // Сообщаем системе обучения о завершении обработки
         HasCompletedProgram = true;
 
         // Оставляем сообщение на экране на заданное время
         yield return new WaitForSeconds(completionMessageDuration);
 
-        // Скрываем всю панель
+        // Скрываем панель
         if (messagePanel != null)
             messagePanel.SetActive(false);
 
@@ -207,11 +230,11 @@ public class MachineProgramController : MonoBehaviour
         if (programStatusText != null)
             programStatusText.text = "";
 
-        // Завершаем программу и возвращаем станок в ожидание
+        // Завершаем программу
         FinishProgram();
     }
 
-    // Проверка закрытия всех дверей
+    // ПРОВЕРКА ЗАКРЫТИЯ ВСЕХ ДВЕРЕЙ
     private bool AreDoorsClosed()
     {
         if (doors == null || doors.Length == 0)
@@ -229,11 +252,15 @@ public class MachineProgramController : MonoBehaviour
         return true;
     }
 
-    // Завершение программы
+    // ЗАВЕРШЕНИЕ ПРОГРАММЫ
     public void FinishProgram()
     {
         if (!isProgramRunning)
             return;
+
+        // На всякий случай останавливаем считывание координат
+        if (cncJson != null)
+            cncJson.StopReading();
 
         isProgramRunning = false;
 
