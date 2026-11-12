@@ -14,11 +14,15 @@ public class VRSlidingDoor : MonoBehaviour
     [SerializeField] private float moveSpeed = 1.5f;
 
     private bool isOpen = false;
+    private bool isLocked = false;
     private Coroutine movement;
 
     private Vector3 startPosition;
     private Vector3 moveDirection;
     private float moveDistance;
+
+    // Дверь закрыта, если она находится в endpoint
+    public bool IsFullyClosed => !isOpen && movement == null;
 
     private void Start()
     {
@@ -36,7 +40,8 @@ public class VRSlidingDoor : MonoBehaviour
         moveDistance = difference.magnitude;
         moveDirection = difference.normalized;
 
-        transform.position = startPosition;
+        // Начальное положение — закрытая дверь
+        transform.position = endPoint.position;
     }
 
     public void HandHoverUpdate(Hand hand)
@@ -51,6 +56,13 @@ public class VRSlidingDoor : MonoBehaviour
 
     public void ToggleDoor()
     {
+        // Запрет перемещения во время работы программы
+        if (isLocked)
+        {
+            Debug.Log("Дверь заблокирована: программа выполняется!");
+            return;
+        }
+
         isOpen = !isOpen;
 
         if (movement != null)
@@ -61,7 +73,9 @@ public class VRSlidingDoor : MonoBehaviour
 
     private IEnumerator MoveDoor()
     {
-        float targetDistance = isOpen ? moveDistance : 0f;
+        // Открытая дверь — startPoint
+        // Закрытая дверь — endPoint
+        float targetDistance = isOpen ? 0f : moveDistance;
 
         float currentDistance = Vector3.Dot(
             transform.position - startPosition,
@@ -86,5 +100,15 @@ public class VRSlidingDoor : MonoBehaviour
             moveDirection * targetDistance;
 
         movement = null;
+    }
+
+    // Блокировка или разблокировка двери
+    public void SetLocked(bool locked)
+    {
+        isLocked = locked;
+
+        Debug.Log(locked
+            ? "Дверь заблокирована"
+            : "Дверь разблокирована");
     }
 }

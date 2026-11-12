@@ -140,7 +140,7 @@ public class CncJson8 : MonoBehaviour
                         // ОСЬ Y
                         nodeY.localPosition =
                             startY + directionY.normalized *
-                            y * MmToMeters * yMovementMultiplier;
+                            y * MmToMeters;
 
                         // ОСЬ Z
                         // Преобразуем мировое направление Z
@@ -151,7 +151,7 @@ public class CncJson8 : MonoBehaviour
 
                         nodeZ.localPosition =
                             startZ + localDirectionZ.normalized *
-                            z * MmToMeters;
+                            z * MmToMeters * yMovementMultiplier;
 
                         Debug.Log(
                             $"CNC: X={x:F3}; Y={y:F3}; Z={z:F3} мм");
